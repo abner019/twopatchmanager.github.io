@@ -1,7 +1,139 @@
 <!DOCTYPE html>
-<html>
-<body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro de Change Request</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Registro de Change Request</h1>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block font-medium">Token do GitHub</label>
+        <input id="token" type="password" class="w-full border rounded px-3 py-2" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+
+      <div>
+        <label class="block font-medium">Solicitante</label>
+        <input id="solicitante" type="text" class="w-full border rounded px-3 py-2">
+      </div>
+
+      <div>
+        <label class="block font-medium">Descrição</label>
+        <textarea id="descricao" class="w-full border rounded px-3 py-2"></textarea>
+      </div>
+
+      <div>
+        <label class="block font-medium">Selecione a pasta</label>
+        <select id="folder" class="w-full border rounded px-3 py-2">
+          <option value="procedures">procedures</option>
+          <option value="functions">functions</option>
+          <option value="tables">tables</option>
+          <option value="views">views</option>
+          <option value="package_bodies">package_bodies</option>
+          <option value="package_specs">package_specs</option>
+          <option value="ords">ords</option>
+          <option value="apex_apps">apex_apps</option>
+        </select>
+      </div>
+
+      <div>
+        <button onclick="loadFiles()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Carregar Objetos</button>
+      </div>
+
+      <div id="fileList" class="bg-gray-50 border rounded p-4">
+        <p class="text-gray-500">Nenhum objeto carregado.</p>
+      </div>
+
+      <div>
+        <button onclick="createIssue()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Criar Issue</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const repo = "twoapps";
+    const owner = "SEU_USUARIO_AQUI"; // <-- Coloque seu username do GitHub
+    const basePath = "src/database/twoapps";
+
+    async function loadFiles() {
+      const token = document.getElementById('token').value;
+      const folder = document.getElementById('folder').value;
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${basePath}/${folder}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `token ${token}`
+        }
+      });
+
+      const data = await res.json();
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = '';
+
+      if (Array.isArray(data)) {
+        data.forEach(item => {
+          if (item.type === 'file') {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = item.name;
+            checkbox.className = "mr-2";
+
+            const label = document.createElement('label');
+            label.className = "block";
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(item.name));
+
+            fileList.appendChild(label);
+          }
+        });
+      } else {
+        fileList.innerHTML = `<p class="text-red-500">Erro ao carregar arquivos.</p>`;
+      }
+    }
+
+    async function createIssue() {
+      const token = document.getElementById('token').value;
+      const solicitante = document.getElementById('solicitante').value;
+      const descricao = document.getElementById('descricao').value;
+
+      const checkboxes = document.querySelectorAll('#fileList input[type=checkbox]:checked');
+      const arquivos = Array.from(checkboxes).map(cb => cb.value);
+
+      const body = `
+**Solicitante:** ${solicitante}
+
+**Descrição:**  
+${descricao}
+
+**Objetos:**  
+${arquivos.map(a => `- ${a}`).join('\n')}
+      `;
+
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues`, {
+        method: 'POST',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: `Change Request - ${descricao}`,
+          body: body,
+          labels: ['change request']
+        })
+      });
+
+      if (res.status === 201) {
+        alert('Issue criada com sucesso!');
+      } else {
+        const error = await res.json();
+        alert('Erro ao criar issue: ' + JSON.stringify(error));
+      }
+    }
+  </script>
 </body>
 </html>
