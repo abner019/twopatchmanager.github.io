@@ -3,12 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Registro de Change Request</title>
+  <title>TwoApps - Change Request</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
 
-  <div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+  <!-- Navbar -->
+  <nav class="bg-blue-800 text-white p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="text-xl font-bold">TwoApps</div>
+      <div class="space-x-6">
+        <button onclick="showPage('home')" class="hover:text-gray-300">Home</button>
+        <button onclick="showPage('issue')" class="hover:text-gray-300">Abrir Issue</button>
+        <button onclick="showPage('about')" class="hover:text-gray-300">Sobre</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdos -->
+  <div id="home" class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Bem-vindo ao TwoApps</h1>
+    <p>Use este sistema para registrar suas Change Requests diretamente no GitHub.</p>
+  </div>
+
+  <div id="issue" class="hidden max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
     <h1 class="text-2xl font-bold mb-4">Registro de Change Request</h1>
 
     <div class="space-y-4">
@@ -55,10 +73,24 @@
     </div>
   </div>
 
+  <div id="about" class="hidden max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Sobre</h1>
+    <p>Este sistema foi desenvolvido para facilitar o registro de Change Requests no repositório GitHub do projeto TwoApps.</p>
+    <p class="mt-2">Desenvolvido por Abner. 🚀</p>
+  </div>
+
   <script>
     const repo = "twoapps";
-    const owner = "SEU_USUARIO_AQUI"; // <-- Coloque seu username do GitHub
+    const owner = "SEU_USUARIO_AQUI"; // <-- Coloque seu usuário GitHub
     const basePath = "src/database/twoapps";
+
+    function showPage(page) {
+      const pages = ['home', 'issue', 'about'];
+      pages.forEach(p => {
+        document.getElementById(p).classList.add('hidden');
+      });
+      document.getElementById(page).classList.remove('hidden');
+    }
 
     async function loadFiles() {
       const token = document.getElementById('token').value;
@@ -134,6 +166,9 @@ ${arquivos.map(a => `- ${a}`).join('\n')}
         alert('Erro ao criar issue: ' + JSON.stringify(error));
       }
     }
+
+    // Inicia na página Home
+    showPage('home');
   </script>
 </body>
 </html>
